@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Mini Social</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="topbar fb-topbar">
+      <div class="topbar-inner">
+        <div class="brand fb-brand">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="24" height="24" rx="6" fill="#fff" opacity="0.06"/><path d="M6 12h12M12 6v12" stroke="#fff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="brand-text">Netily media</span>
+        </div>
+
+        <div class="fb-center-actions" role="navigation" aria-label="Main">
+          <button class="fb-action">🏠</button>
+          <button class="fb-action">🎬</button>
+          <button class="fb-action">🛍️</button>
+          <button class="fb-action">👥</button>
+        </div>
+
+        <div class="search"><input id="searchInput" placeholder="Search MiniSocial" aria-label="Search"/></div>
+
+        <div class="auth" id="authArea">
+          <div class="auth-inner">
+            <button class="icon-btn" id="notifBtn" aria-label="Notifications">🔔<span class="badge" id="notifCount">3</span></button>
+            <div class="top-actions">
+              <button id="loginBtnTop" class="top-btn">Login</button>
+              <button id="settingsBtnTop" class="icon-btn" aria-label="Settings">⚙️</button>
+            </div>
+            <div class="profile-pill" id="profilePill"><img src="" alt="profile" id="topAvatar" class="avatar"/></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <aside class="sidebar">
+        <div id="profileCard" class="card"></div>
+      </aside>
+
+      <section class="feed">
+        <div class="composer card" id="composerArea">
+          <div style="display:flex;gap:8px;align-items:center">
+            <img id="composerAvatar" src="" style="width:44px;height:44px;border-radius:10px;background:#ddd"/>
+            <textarea id="postText" placeholder="What's on your mind?" style="flex:1"></textarea>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+            <input id="postImage" type="file" accept="image/*" />
+            <input id="storyImage" type="file" accept="image/*" style="margin-left:6px" />
+            <button id="storyBtn">Add Story</button>
+            <button id="postBtn">Post</button>
+            <div id="postPreview"></div>
+          </div>
+        </div>
+
+        <div class="stories card" id="stories" style="margin:12px 0;padding:10px;display:flex;gap:10px;overflow-x:auto"></div>
+
+        <div id="posts"></div>
+      </section>
+
+      <aside class="rightcol">
+        <div class="card">
+          <h4>About</h4>
+          <p>This is a simple client-only social feed using localStorage.</p>
+        </div>
+      </aside>
+    </main>
+
+    <footer style="text-align:center;padding:12px 0;color:#6b7684;font-size:14px">
+      Co-founder: Marshal Bhandari
+    </footer>
+
+    <div id="modal" class="modal hidden"></div>
+    <div id="externalModal" class="modal hidden">
+      <div class="card" style="width:920px;max-width:96%;height:640px;max-height:90%;padding:0;overflow:hidden;position:relative">
+        <button id="externalClose" style="position:absolute;right:10px;top:10px;z-index:5;background:transparent;border:0;color:#111;font-size:20px;padding:8px;cursor:pointer">✕</button>
+        <iframe id="externalFrame" src="" style="width:100%;height:100%;border:0;background:#fff"></iframe>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
