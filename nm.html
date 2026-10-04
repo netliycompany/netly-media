@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Login — MiniSocial (NM)</title>
+    <style>
+      :root{--bg:#f6f8fb;--card:#fff;--accent:#1877f2}
+      body{font-family:Inter,Segoe UI,Arial,Helvetica,sans-serif;background:var(--bg);margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center}
+      .panel{background:var(--card);padding:20px;border-radius:12px;box-shadow:0 10px 30px rgba(17,24,39,0.08);width:360px}
+      h2{margin:0 0 12px 0;font-size:18px}
+      label{display:block;font-size:13px;color:#334155;margin-top:8px}
+      input{width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef8;margin-top:6px}
+      .row{display:flex;gap:8px;margin-top:12px}
+      button{flex:1;padding:10px;border-radius:8px;border:0;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}
+      .muted{color:#64748b;font-size:13px;margin-top:8px}
+      .link{color:var(--accent);cursor:pointer;text-decoration:underline}
+      .small{font-size:13px}
+      .success{color:green}
+      .error{color:#b91c1c}
+      .center{text-align:center}
+      .logout{background:#e2e8f0;color:#111}
+    </style>
+  </head>
+  <body>
+    <div class="panel" id="panel">
+      <h2 id="panelTitle">Sign in</h2>
+
+      <div id="forms">
+        <div id="loginForm">
+          <label for="li_email">Email</label>
+          <input id="li_email" type="email" placeholder="you@example.com" />
+          <label for="li_pass">Password</label>
+          <input id="li_pass" type="password" placeholder="password" />
+          <div class="row">
+            <button id="loginBtn">Login</button>
+            <button id="toSignup" class="logout">Sign up</button>
+          </div>
+        </div>
+
+        <div id="signupForm" style="display:none">
+          <label for="su_name">Name</label>
+          <input id="su_name" placeholder="Your name" />
+          <label for="su_email">Email</label>
+          <input id="su_email" type="email" placeholder="you@example.com" />
+          <label for="su_pass">Password</label>
+          <input id="su_pass" type="password" placeholder="at least 6 chars" />
+          <div class="row">
+            <button id="createBtn">Create</button>
+            <button id="toLogin" class="logout">Back</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="status" class="muted small center" style="margin-top:12px"></div>
+
+      <div id="signedIn" style="display:none;margin-top:12px">
+        <div class="small">Signed in as <strong id="who">User</strong></div>
+        <div style="margin-top:8px">
+          <button id="editProfile" class="top-btn">Edit profile</button>
+        </div>
+        <div id="editProfileForm" style="display:none;margin-top:8px">
+          <label>ID / Username</label>
+          <input id="ep_id" placeholder="username" />
+          <label>Name</label>
+          <input id="ep_name" />
+          <label>Avatar (URL or upload)</label>
+          <input id="ep_avatar" placeholder="https://... (optional)" />
+          <div style="margin-top:8px">Or upload an image: <input id="ep_avatar_file" type="file" accept="image/*" /></div>
+          <div id="ep_preview" style="margin-top:8px"></div>
+          <div class="row" style="margin-top:8px">
+            <button id="saveProfile">Save</button>
+            <button id="cancelProfile" class="logout">Cancel</button>
+          </div>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button id="goProfile">Profile</button>
+          <button id="logoutBtn" class="logout">Logout</button>
+        </div>
+      </div>
+      <div id="postArea" style="display:none;margin-top:14px">
+        <h3>Create Post</h3>
+        <textarea id="nm_post_text" placeholder="Share something..." style="width:100%;height:72px;border-radius:8px;padding:8px;margin-top:6px"></textarea>
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+          <input id="nm_post_image" type="file" accept="image/*" />
+          <button id="nm_post_btn">Post</button>
+        </div>
+        <h3 style="margin-top:12px">Create Story</h3>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="nm_story_image" type="file" accept="image/*" />
+          <button id="nm_story_btn">Add Story</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Simple client-side auth for demo (localStorage)
+      const LS_USERS = 'nm_users';
+      const LS_SESSION = 'nm_session';
+
+      const qs = id => document.getElementById(id);
+      const status = qs('status');
+
+      function load(k, def){ try{ return JSON.parse(localStorage.getItem(k) || JSON.stringify(def)); }catch(e){ return def; } }
+      function save(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
+
+      function init(){
+        const session = load(LS_SESSION, null);
+        if(session){ showSignedIn(session); } else { showAuth(); }
+      }
+
+      function showAuth(){ qs('forms').style.display='block'; qs('signedIn').style.display='none'; qs('status').textContent=''; }
+      function showSignedIn(user){ qs('forms').style.display='none'; qs('signedIn').style.display='block'; qs('who').textContent = user.name || user.email; }
+
+      // signup
+      qs('toSignup').addEventListener('click', ()=>{ qs('loginForm').style.display='none'; qs('signupForm').style.display='block'; qs('panelTitle').textContent='Create account'; status.textContent=''; });
+      qs('toLogin').addEventListener('click', ()=>{ qs('loginForm').style.display='block'; qs('signupForm').style.display='none'; qs('panelTitle').textContent='Sign in'; status.textContent=''; });
+
+      qs('createBtn').addEventListener('click', ()=>{
+        const name = qs('su_name').value.trim(); const email = qs('su_email').value.trim().toLowerCase(); const pass = qs('su_pass').value;
+        if(!email || !pass || pass.length < 4){ status.textContent='Please provide a valid email and password (min 4).'; status.className='error center'; return; }
+        const users = load(LS_USERS, []);
+        if(users.find(u=>u.email===email)){ status.textContent='Email already registered.'; status.className='error center'; return; }
+        const user = {id: 'u_'+Date.now(), name: name || email.split('@')[0], email, password: pass}; users.push(user); save(LS_USERS, users); save(LS_SESSION, user); status.textContent='Account created and signed in.'; status.className='success center'; showSignedIn(user);
+        try{ window.parent.postMessage({type:'nm_auth', event:'login', user}, '*'); }catch(e){}
+      });
+
+      // login
+      qs('loginBtn').addEventListener('click', ()=>{
+        const email = qs('li_email').value.trim().toLowerCase(); const pass = qs('li_pass').value;
+        const users = load(LS_USERS, []);
+        const u = users.find(x=>x.email===email && x.password===pass);
+        if(!u){ status.textContent='Bad credentials.'; status.className='error center'; return; }
+        save(LS_SESSION, u); status.textContent='Signed in.'; status.className='success center'; showSignedIn(u);
+        try{ window.parent.postMessage({type:'nm_auth', event:'login', user: u}, '*'); }catch(e){}
+      });
+
+      qs('logoutBtn').addEventListener('click', ()=>{ localStorage.removeItem(LS_SESSION); status.textContent='Signed out.'; status.className='muted center'; showAuth(); try{ window.parent.postMessage({type:'nm_auth', event:'logout'}, '*'); }catch(e){} });
+
+      qs('goProfile').addEventListener('click', ()=>{
+        const s = load(LS_SESSION, null); if(!s){ status.textContent='Not signed in'; return; } alert('Profile (demo): '+ (s.name || s.email));
+      });
+
+      // edit profile UI
+      const editProfileBtn = qs('editProfile');
+      const editForm = qs('editProfileForm');
+      const ep_name = qs('ep_name');
+      const ep_avatar = qs('ep_avatar');
+      const saveProfile = qs('saveProfile');
+      const cancelProfile = qs('cancelProfile');
+
+      editProfileBtn && editProfileBtn.addEventListener('click', ()=>{
+        const s = load(LS_SESSION, null); if(!s) return; editForm.style.display='block'; ep_name.value = s.name||''; ep_avatar.value = s.avatar||''; ep_id.value = s.id||'';
+        // preview
+        const prev = qs('ep_preview'); prev.innerHTML = s.avatar? `<img src="${s.avatar}" style="width:72px;border-radius:8px"/>` : '';
+      });
+      cancelProfile && cancelProfile.addEventListener('click', ()=>{ editForm.style.display='none'; });
+      // handle avatar upload file -> dataURL
+      const avatarFile = qs('ep_avatar_file');
+      if(avatarFile){ avatarFile.addEventListener('change', (ev)=>{
+        const f = ev.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = ()=>{ qs('ep_preview').innerHTML = `<img src="${r.result}" style="width:72px;border-radius:8px"/>`; qs('ep_avatar').value = r.result; }; r.readAsDataURL(f);
+      }); }
+
+      saveProfile && saveProfile.addEventListener('click', ()=>{
+        const s = load(LS_SESSION, null); if(!s) return; s.id = qs('ep_id').value.trim() || s.id; s.name = ep_name.value.trim() || s.name; s.avatar = ep_avatar.value.trim() || s.avatar; save(LS_SESSION, s); status.textContent='Profile updated'; status.className='success center'; editForm.style.display='none';
+        try{ window.parent.postMessage({type:'nm_auth', event:'profile_update', user: s}, '*'); }catch(e){}
+      });
+
+      // seed one user for demo
+      if(!localStorage.getItem(LS_USERS)){
+        save(LS_USERS, [{id:'u_demo', name:'Alice', email:'alice@example.com', password:'pass'}]);
+      }
+
+      init();
+
+      // POSTS & STORIES from nm.html (allow creating content here and notify parent)
+      const LS_POSTS = 'sm_posts';
+      const LS_STORIES = 'sm_stories';
+      function loadRaw(k,def){ try{return JSON.parse(localStorage.getItem(k) || JSON.stringify(def));}catch(e){return def;} }
+      function saveRaw(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
+
+      function createPostFromNM(text, image){ const s = load(LS_SESSION, null); if(!s){ alert('Sign in first'); return; } const posts = loadRaw(LS_POSTS, []); const p = {id:'p_'+Date.now(), userId:s.id||s.email, userName:s.name||s.email, userAvatar:s.avatar||'', content:text||'', image:image||null, time:new Date().toISOString()}; posts.unshift(p); saveRaw(LS_POSTS, posts); try{ window.parent.postMessage({type:'nm_auth', event:'new_post', post: p}, '*'); }catch(e){} }
+
+      function createStoryFromNM(image){ const s = load(LS_SESSION, null); if(!s){ alert('Sign in first'); return; } const stories = loadRaw(LS_STORIES, []); const st = {id:'s_'+Date.now(), userId:s.id||s.email, userName:s.name||s.email, userAvatar:s.avatar||'', image:image, time:new Date().toISOString(), expires: Date.now()+24*60*60*1000}; stories.unshift(st); saveRaw(LS_STORIES, stories); try{ window.parent.postMessage({type:'nm_auth', event:'new_story', story: st}, '*'); }catch(e){} }
+
+      // wire nm post/story buttons
+      const nmPostBtn = qs('nm_post_btn');
+      const nmPostImage = qs('nm_post_image');
+      const nmPostText = qs('nm_post_text');
+      if(nmPostBtn){ nmPostBtn.addEventListener('click', ()=>{
+        const f = nmPostImage.files && nmPostImage.files[0]; const text = nmPostText.value.trim(); if(f){ const r=new FileReader(); r.onload=()=>{ createPostFromNM(text, r.result); nmPostText.value=''; nmPostImage.value=''; alert('Posted'); }; r.readAsDataURL(f); } else { createPostFromNM(text); nmPostText.value=''; alert('Posted'); }
+      }); }
+
+      const nmStoryBtn = qs('nm_story_btn');
+      const nmStoryImage = qs('nm_story_image');
+      if(nmStoryBtn){ nmStoryBtn.addEventListener('click', ()=>{
+        const f = nmStoryImage.files && nmStoryImage.files[0]; if(!f){ alert('Choose an image for story'); return; } const r=new FileReader(); r.onload=()=>{ createStoryFromNM(r.result); nmStoryImage.value=''; alert('Story added'); }; r.readAsDataURL(f);
+      }); }
+    </script>
+  </body>
+</html>
